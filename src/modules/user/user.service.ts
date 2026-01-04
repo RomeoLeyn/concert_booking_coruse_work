@@ -68,7 +68,7 @@ export class UserService {
     async sumUsersOrders() {
         const users = await this.userRepository.find();
 
-        const nestedBookings = await Promise.all(users.map(async (u) => await this.bookingService.getUserBookings(u.id)));
+        const nestedBookings = await Promise.all(users.map(async (u) => await this.bookingService.geAllUserBookings(u.id)));
         const allUsersBookings = nestedBookings.flat();
 
         const statsMap = new Map<number, { name: string; orderSum: number }>();
