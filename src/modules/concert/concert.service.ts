@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { VenueService } from '../venue/venue.service';
@@ -26,7 +26,7 @@ export class ConcertService {
 
     async create(createConcertDto: CreateConcertDto) {
 
-        const artist = await this.artistService.findById(createConcertDto.artistId);
+        const artists = await this.artistService.findByIds(createConcertDto.artistsIds);
         const venue = await this.venueService.findById(createConcertDto.venueId);
 
         const concert = this.concertRepository.create({
@@ -37,7 +37,7 @@ export class ConcertService {
             location: createConcertDto.location,
             description: createConcertDto.description,
             imageUrl: createConcertDto.imageUrl,
-            artist,
+            artists,
             venue,
         });
         const createdConcert = await this.concertRepository.save(concert);
@@ -46,7 +46,12 @@ export class ConcertService {
     }
 
     async update(id: number, updateConcertDto: UpdateConcertDto) {
-        const artist = await this.artistService.findById(Number(updateConcertDto.artistId));
+
+        if (!updateConcertDto.artistsIds) {
+            throw new BadRequestException('Choose artist for update');
+        }
+
+        const artists = await this.artistService.findByIds(updateConcertDto.artistsIds);
         const venue = await this.venueService.findById(Number(updateConcertDto.venueId));
 
         const concert = await this.concertRepository.update(id, {
@@ -54,7 +59,7 @@ export class ConcertService {
             date: updateConcertDto.date,
             time: updateConcertDto.time,
             price: updateConcertDto.price,
-            artist,
+            artists,
             venue,
         });
     }
@@ -65,7 +70,7 @@ export class ConcertService {
             relations: {
                 tickets: true,
                 venue: true,
-                artist: true,
+                artists: true,
             }
         });
 
@@ -84,7 +89,7 @@ export class ConcertService {
     async getConcerts(): Promise<ResponseConcertsDto[]> {
         const concerts = await this.concertRepository.find({
             relations: {
-                artist: true,
+                artists: true,
                 venue: true,
             },
         });

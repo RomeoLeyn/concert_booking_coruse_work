@@ -1,4 +1,4 @@
-import { IsInt, isNotEmpty, IsNotEmpty, IsString } from "class-validator";
+import { IsEnum, IsInt, IsNotEmpty, IsString } from "class-validator";
 import { PaymentMethod } from "src/common/enums/payment-method.enum";
 import { PaymentStatus } from "src/common/enums/payment-status.enum";
 
@@ -11,6 +11,7 @@ export class CreatePaymentDto {
     paymentMethod: PaymentMethod;
 
     @IsNotEmpty()
+    @IsEnum(PaymentStatus)
     status: PaymentStatus;
 
     @IsNotEmpty()

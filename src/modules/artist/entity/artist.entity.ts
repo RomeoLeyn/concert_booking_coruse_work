@@ -30,6 +30,6 @@ export class Artist {
     })
     description: string
 
-    @OneToMany(() => Concert, (concert) => concert.artist)
+    @OneToMany(() => Concert, (concert) => concert.artists)
     concerts: Concert[];
 }

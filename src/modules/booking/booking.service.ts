@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './entity/booking.entity';
 import { Repository } from 'typeorm';
@@ -16,6 +16,7 @@ export class BookingService {
         @InjectRepository(Booking)
         private readonly bookingRepositroy: Repository<Booking>,
         private readonly ticketService: TicketService,
+        @Inject(forwardRef(() => UserService))
         private readonly userService: UserService,
         private readonly mapperService: MapperService,
     ) { }
@@ -92,7 +93,7 @@ export class BookingService {
             where: { user: { id: userId } },
             relations: {
                 user: true,
-                payment: true
+                payment: true,
             }
         });
 
@@ -121,5 +122,77 @@ export class BookingService {
         );
 
         return allBookingsWithTickets;
+    }
+
+    async geAllUserBookings(userId: number) {
+        const rows = await this.bookingRepositroy
+            .createQueryBuilder('booking')
+            .leftJoin('booking.user', 'user')
+            .leftJoin('booking.tickets', 'ticket')
+            .leftJoinAndSelect('ticket.concert', 'concert')
+            .leftJoin('booking.payment', 'payment')
+            .select([
+
+                'user.id AS user_id',
+                'user.name AS user_name',
+                'user.email AS user_email',
+                'user.role AS user_role',
+
+                'booking.id AS booking_id',
+                'booking.bookingDate AS booking_date',
+                'booking.paymentStatus AS payment_status',
+
+                'concert.id AS concert_id',
+                'concert.title AS concert_title',
+                'concert.date AS concert_date',
+
+                'payment.status AS payment_status',
+                'payment.paymentMethod AS payment_method',
+
+                'SUM(ticket.price) AS total_amount'
+            ])
+            .where('user.id = :userId', { userId })
+            .groupBy('booking.id')
+            .addGroupBy('concert.id')
+            .addGroupBy('payment.id')
+            .addGroupBy('user.id')
+            .getRawMany();
+
+        return rows.map(row => ({
+            id: row.booking_id,
+            bookingDate: row.booking_date,
+            paymentStatus: row.payment_status,
+            totalAmount: Number(row.total_amount),
+            user: {
+                id: row.user_id,
+                name: row.user_name,
+                email: row.user_email,
+                role: row.user_role,
+            },
+            concert: {
+                id: row.concert_id,
+                title: row.concert_title,
+                date: row.concert_date,
+            },
+            payment: {
+                status: row.payment_status,
+                method: row.payment_method,
+            }
+        }));
+    }
+
+    async calculateUsersOrdersTotal(userId: number) {
+        const bookings = await this.bookingRepositroy.query(
+            `
+            SELECT
+                user_id,
+                SUM(payments.amount)
+            FROM bookings
+            JOIN payments ON bookings.id = payments.booking_id
+            WHERE user_id=${userId}
+            GROUP BY user_id;
+            `,
+        );
+        return bookings;
     }
 } 

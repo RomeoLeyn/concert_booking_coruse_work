@@ -1,19 +1,21 @@
 import { Expose } from "class-transformer";
+import { PaymentMethod } from "src/common/enums/payment-method.enum";
 import { PaymentStatus } from "src/common/enums/payment-status.enum";
 
 export class ResponsePaymentDto {
     @Expose()
     id: number;
 
-    @Expose()
     amount: number;
 
     @Expose()
     status: PaymentStatus;
 
+    @Expose()
+    paymentMethod: PaymentMethod;
+
     cardNumber: string;
 
-    @Expose()
     cardholderName: string;
 
     expiryDate: string;

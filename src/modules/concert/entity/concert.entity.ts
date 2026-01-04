@@ -1,11 +1,11 @@
 import { Artist } from "src/modules/artist/entity/artist.entity";
 import { Ticket } from "src/modules/ticket/entity/ticket.entity";
 import { Venue } from "src/modules/venue/entity/venue.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('concerts')
 export class Concert {
-    @PrimaryGeneratedColumn({ type: 'bigint' })
+    @PrimaryGeneratedColumn()
     id: number;
 
     @Column({
@@ -55,11 +55,13 @@ export class Concert {
     @OneToMany(() => Ticket, (ticket) => ticket.concert)
     tickets: Ticket[];
 
-    @ManyToOne(() => Artist, (artist) => artist.concerts)
-    @JoinColumn({
-        name: "artist_id"
+    @ManyToMany(() => Artist, (artist) => artist.concerts)
+    @JoinTable({
+        name: "concert_artists",
+        joinColumn: { name: 'concert_id', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'artist_id', referencedColumnName: 'id' }
     })
-    artist: Artist;
+    artists: Artist[];
 
     @ManyToOne(() => Venue, (venue) => venue.concerts)
     @JoinColumn({

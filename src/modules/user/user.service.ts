@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { User } from './entity/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -6,12 +6,17 @@ import * as bcrypt from 'bcrypt';
 import { SALT_ROUNDS } from 'src/common/constants/constants';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { BookingService } from '../booking/booking.service';
+import { ResponseBookingDto } from '../booking/dto/response-booking.dto';
+
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        @Inject(forwardRef(() => BookingService))
+        private readonly bookingService: BookingService
     ) { }
 
     async create(createUserDto: CreateUserDto) {
@@ -59,7 +64,26 @@ export class UserService {
         return user;
     }
 
-    async sumTotalUsersorders() {
+    // Example method
+    async sumUsersOrders() {
+        const users = await this.userRepository.find();
 
+        const nestedBookings = await Promise.all(users.map(async (u) => await this.bookingService.getUserBookings(u.id)));
+        const allUsersBookings = nestedBookings.flat();
+
+        const statsMap = new Map<number, { name: string; orderSum: number }>();
+
+        for (const booking of allUsersBookings) {
+            const existingUser = statsMap.get(+booking.id)
+            if (existingUser) {
+                existingUser.orderSum += booking.totalAmount
+            } else {
+                statsMap.set(+booking.user.id, {
+                    name: booking.user.name,
+                    orderSum: booking.totalAmount
+                });
+            }
+        };
+        return statsMap;
     }
 }

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Artist } from './entity/artist.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 
@@ -36,16 +36,17 @@ export class ArtistService {
         return this.artistRepository.find();
     }
 
-    async findById(id: number) {
-        const artist = await this.artistRepository.findOne({
-            where: { id }
+    async findByIds(ids: number[]) {
+
+        const artists = await this.artistRepository.findBy({
+            id: In(ids),
         });
 
-        if (!artist) {
-            throw new NotFoundException('Artist not found');
+        if (artists.length !== ids.length) {
+            throw new NotFoundException('One or more artists not found');
         }
 
-        return artist;
+        return artists;
     }
 
     async delete(id: number) {

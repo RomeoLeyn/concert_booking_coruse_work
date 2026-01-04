@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,8 +20,13 @@ export class BookingController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/user/me/:userId')
+  @Get('user/me/:userId')
   async getUserBookings(@Param('userId') userId: number) {
-    return this.bookingService.getUserBookings(userId);
+    return this.bookingService.geAllUserBookings(userId);
+  }
+
+  @Get('calculate/total-amount/:userId')
+  async calculateUsersOrdersTotal(@Param('userId', ParseIntPipe) userId: number) {
+    return this.bookingService.calculateUsersOrdersTotal(userId);
   }
 } 

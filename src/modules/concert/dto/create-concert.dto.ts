@@ -1,4 +1,4 @@
-import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString, Length, Max, Min } from "class-validator";
+import { IsArray, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString, Length, Max, Min } from "class-validator";
 
 export class CreateConcertDto {
     @IsString()
@@ -34,9 +34,9 @@ export class CreateConcertDto {
     @IsNotEmpty()
     imageUrl: string;
 
-    @IsNumber()
+    @IsArray()
     @IsNotEmpty()
-    artistId: number;
+    artistsIds: number[];
 
     @IsNumber()
     @IsNotEmpty()

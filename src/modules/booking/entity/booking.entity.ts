@@ -18,7 +18,8 @@ export class Booking {
     @Column({
         type: 'enum',
         enum: PaymentStatus,
-        name: 'payment_status'
+        name: 'payment_status',
+        default: 'PENDING'
     })
     paymentStatus: PaymentStatus;
 

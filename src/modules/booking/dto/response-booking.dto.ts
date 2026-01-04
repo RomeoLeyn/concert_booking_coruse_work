@@ -10,11 +10,11 @@ export class ResponseBookingDto {
     id: string;
 
     @Expose()
-    @Type(() => ResponseUserDto)
-    user: ResponseUserDto;
+    bookingDate: Date;
 
     @Expose()
-    concertId: string;
+    @Type(() => ResponseUserDto)
+    user: ResponseUserDto;
 
     @Expose()
     @Type(() => ResponseDetailsConcertDto)
@@ -33,8 +33,4 @@ export class ResponseBookingDto {
     @Expose()
     @Type(() => ResponsePaymentDto)
     payment: ResponsePaymentDto;
-
-    status: 'pending' | 'confirmed' | 'cancelled';
-    bookingDate: string;
-    paymentDate?: string;
 }
