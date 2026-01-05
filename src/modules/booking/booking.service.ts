@@ -26,7 +26,7 @@ export class BookingService {
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly mapperService: MapperService,
-  ) {}
+  ) { }
 
   async create(createBookingDto: CreateBookingDto) {
     const tickets = await this.ticketService.findTicketsByIds(
@@ -69,45 +69,13 @@ export class BookingService {
     }
   }
 
-//   async getBookingById(id: number): Promise<ResponseBookingDto> {
-//     const booking = await this.bookingRepositroy.findOne({
-//       where: {
-//         id,
-//       },
-//       relations: {
-//         user: true,
-//         payment: true,
-//       },
-//     });
-
-//     if (!booking) {
-//       throw new NotFoundException('Booking not found');
-//     }
-
-//     const tickets = await this.ticketService.findTicketsByBookingId(booking.id);
-
-//     if (!tickets.length) {
-//       throw new NotFoundException('Tocket not found');
-//     }
-
-//     const totalAmount = tickets.reduce((sum, t) => sum + Number(t.price), 0);
-
-//     return this.mapperService.toDto(ResponseBookingDto, booking, {
-//       tickets,
-//       totalAmount,
-//       concertId: tickets[0].concert.id,
-//       concert: tickets[0].concert,
-//       status: booking.paymentStatus,
-//     });
-//   }
-
   async getBookingById(id: number) {
     const bookingsRows = await this.bookingRepositroy
       .createQueryBuilder('booking')
       .leftJoin('booking.user', 'user')
       .leftJoin('booking.payment', 'payment')
       .leftJoin('booking.tickets', 'ticket')
-      .leftJoinAndSelect('ticket.concerts', 'concert')
+      .leftJoin('ticket.concert', 'concert')
       .select([
         'user.id AS user_id',
         'user.name AS user_name',
@@ -116,13 +84,13 @@ export class BookingService {
 
         'booking.id AS booking_id',
         'booking.bookingDate AS booking_date',
-        'booking.paymentStatus AS payment_status',
+        'booking.paymentStatus AS booking_payment_status',
 
         'concert.id AS concert_id',
         'concert.title AS concert_title',
         'concert.date AS concert_date',
 
-        'payment.status AS status',
+        'payment.status AS payment_status',
         'payment.paymentMethod AS payment_method',
 
         'SUM(ticket.price) AS total_amount',
@@ -134,10 +102,10 @@ export class BookingService {
       .addGroupBy('payment.id')
       .getRawMany();
 
-      return bookingsRows.map((row) => ({
+    return bookingsRows.map((row) => ({
       id: row.booking_id,
       bookingDate: row.booking_date,
-      paymentStatus: row.payment_status,
+      bookingPaymentStatus: row.booking_payment_status,
       totalAmount: Number(row.total_amount),
       user: {
         id: row.user_id,
@@ -162,7 +130,7 @@ export class BookingService {
       .createQueryBuilder('booking')
       .leftJoin('booking.user', 'user')
       .leftJoin('booking.tickets', 'ticket')
-      .leftJoinAndSelect('ticket.concert', 'concert')
+      .leftJoin('ticket.concert', 'concert')
       .leftJoin('booking.payment', 'payment')
       .select([
         'user.id AS user_id',
@@ -172,7 +140,7 @@ export class BookingService {
 
         'booking.id AS booking_id',
         'booking.bookingDate AS booking_date',
-        'booking.paymentStatus AS payment_status',
+        'booking.paymentStatus AS booking_payment_status',
 
         'concert.id AS concert_id',
         'concert.title AS concert_title',
@@ -193,7 +161,7 @@ export class BookingService {
     return bookingsRows.map((row) => ({
       id: row.booking_id,
       bookingDate: row.booking_date,
-      paymentStatus: row.payment_status,
+      bookingPaymentStatus: row.booking_payment_status,
       totalAmount: Number(row.total_amount),
       user: {
         id: row.user_id,

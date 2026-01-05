@@ -29,7 +29,7 @@ export class ResponseConcertsDto {
 
     @Expose()
     @Type(() => ResponseArtistDto)
-    artist: ResponseArtistDto[];
+    artists: ResponseArtistDto[];
 
     @Expose()
     @Type(() => ResponseVenueDto)
